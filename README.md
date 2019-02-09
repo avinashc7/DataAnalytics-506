@@ -5,7 +5,7 @@ This folder will be updated as and when project progresses
 ## Data Description
 -Dataset Name
 -Source
--Number of rows and observation
+-Number of rows and observations
 
 ## Analysis
 To be completed later

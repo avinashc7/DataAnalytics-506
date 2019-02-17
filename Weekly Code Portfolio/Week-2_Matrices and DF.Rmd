@@ -1,0 +1,68 @@
+---
+title: "Matrices and Dataframes using Pirates Database"
+author: "Avinash Chakre"
+date: "February 16, 2019"
+output: html_document
+---
+
+## R Markdown
+
+
+```{r}
+# The following table shows the results of a survey of 10 pirates. In addition to some basic demographic information, the survey asked each pirate "What is your favorite superhero?" and "How many tattoos do you have?"
+
+superhero <- data.frame(
+  Name = c("Astrid", "Lea", "Sarina", "Remon", "Letizia", "Babice", "Jonas", "Wendy", "Niveditha", "Gioia"),
+  Sex = c("F", "F", "F", "M", "F", "F", "M", "F", "F", "F"),
+  Age = c(30, 25, 25, 29, 22, 22, 35, 19, 32, 21),
+  Superhero = c("Batman", "Superman", "Batman", "Spiderman", "Batman",
+               "Antman", "Batman", "Superman", "Maggott", "Superman"),
+  Tattoos = c(11, 15, 12, 5, 65, 3, 9, 13, 900, 0)
+)
+knitr::kable(superhero)
+
+# 1. Combine the data into a single dataframe. Complete all the following exercises from the dataframe!
+piratesurvey <- data.frame(
+  name = c("Astrid", "Lea", "Sarina", "Remon", "Letizia", "Babice", "Jonas", "Wendy", "Niveditha", "Gioia"),
+  sex = c("F", "F", "F", "M", "F", "F", "M", "F", "F", "F"),
+  age = c(30, 25, 25, 29, 22, 22, 35, 19, 32, 21),
+  superhero = c("Batman", "Superman", "Batman", "Spiderman", "Batman",
+               "Antman", "Batman", "Superman", "Maggott", "Superman"),
+  tattoos = c(11, 15, 12, 5, 65, 3, 9, 13, 900, 0),
+  stringsAsFactors = FALSE
+)
+piratesurvey
+
+# 2. What is the median age of the 10 pirates?
+median(piratesurvey$age)
+
+# 3. What was the mean age of female and male pirates separately?
+mean(piratesurvey$age[piratesurvey$sex == "F"])
+mean(piratesurvey$age[piratesurvey$sex == "M"])
+
+# 4. What was the most number of tattoos owned by a male pirate?
+with(piratesurvey, 
+     max(tattoos[sex == "M"]))
+
+# 5. What percent of pirates under the age of 32 were female?
+with(piratesurvey, 
+     mean(sex[age < 32] == "F"))
+
+# 6. What percent of female pirates are under the age of 32?
+with(piratesurvey, 
+     mean(age[sex == "F"] < 32))
+
+# 7. Add a new column to the dataframe called tattoos.per.year which shows how many tattoos each pirate has for each year in their life.
+piratesurvey$tattoos.per.year <- with(piratesurvey, tattoos / age)
+
+# 8. Which pirate had the most number of tattoos per year?
+piratesurvey$name[piratesurvey$tattoos.per.year == max(piratesurvey$tattoos.per.year)]
+
+# 9. What are the names of the female pirates whose favorite superhero is Superman?
+piratesurvey$name[with(piratesurvey, sex == "F" & superhero == "Superman")]
+
+# 10. What was the median number of tattoos of pirates over the age of 20 whose favorite superhero is Spiderman?
+with(piratesurvey, (tattoos[age > 20 & superhero == "Spiderman"]))
+
+```
+

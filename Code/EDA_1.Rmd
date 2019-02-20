@@ -1,0 +1,417 @@
+---
+title: "EDA of GapMinder DataSet"
+author: "Avinash Chakre"
+date: "February 16, 2019"
+output: html_document
+---
+In this exploratory data analysis assignment I have used the Gapminder Dataset for analysis. We will be doing this step by step analysis in R using various functions and methods. We will start with Data Description (description of each variables). In Data exploration section I have first presented regionwise (subcontinents) life expectancy and visulization (boxplots, histograms, and density plots for different) of the different variables present in the data. We will be omiting missing values and do some regression and Hierarchical (k-means) clustering.
+
+Let us start with analysis, results and their interpretations:
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown, installing libraries:
+
+```{r}
+library(data.table)
+#install.packages("dplyr")
+library(dplyr)
+```
+ 
+
+##Reading data from Web location
+```{r}
+
+mydata <- read.csv('https://raw.githubusercontent.com/birdsarah/pydata-nc/master/tutorial/assets/gapminder.csv')
+
+
+```
+
+## 1. Data Description:
+Finding column names, top/bottom 5 records etc
+
+```{r}
+names(mydata)
+nrow(mydata)  #Find number of rows
+ncol(mydata)  #Find number of columns
+str(mydata)   #Data type of each column
+head(mydata)  #Top 6 rows
+tail(mydata)  #Bottom 6 rows
+```
+
+The gapminder dataset is a comma-separated value (.CSV) file with 41284 records.The data frame has six features/variables. str(mydata) also shows that GapMinder dataset columns and 41284 observations in total which we could find by nrow and ncol functions.
+
+```{r}
+summary(mydata)
+```
+
+## 2. GENERATE QUESTIONS
+#Find 20 Countries with lowest life expectance and high income
+#Find the 20 countries with the longest life expectancies
+#Find countries with low life expectancy
+#H0: United States has high life expectancy and high income then other countries 
+#H1: 
+
+## 3. Data Exploration:
+
+Data summary statistics
+
+# 3.1) Mean and Median of life expectancy Region wise
+
+```{r}
+aggregate(life ~ region, mydata, median)
+aggregate(life ~ region, mydata, mean)
+```
+
+# 3.2) Five Num Summary Life Expectancy Region wise
+
+```{r}
+library(dplyr)
+SouthAsia=filter(mydata, region=="South Asia")
+fivenum(SouthAsia$life)
+fivenum(SouthAsia$population)
+fivenum(SouthAsia$income)
+
+EastAsiaPacific = filter(mydata,region=="East Asia & Pacific")
+fivenum(EastAsiaPacific$life)
+fivenum(EastAsiaPacific$population)
+fivenum(EastAsiaPacific$income)
+
+EuropeCentralAsia=filter(mydata,region=="Europe & Central Asia")
+fivenum(EuropeCentralAsia$life)
+fivenum(EuropeCentralAsia$population)
+fivenum(EuropeCentralAsia$income)
+
+MiddleEastNorthAfrica = filter(mydata,region=="Middle East & North Africa")
+fivenum(MiddleEastNorthAfrica$life)
+fivenum(MiddleEastNorthAfrica$population)
+fivenum(MiddleEastNorthAfrica$income)
+
+America =filter(mydata,region=="America")
+fivenum(America$life)
+fivenum(America$population)
+fivenum(America$income)
+
+SubSaharanAfrica = filter(mydata,region=="Sub-Saharan Africa")
+fivenum(SubSaharanAfrica$life)
+fivenum(SubSaharanAfrica$population)
+fivenum(SubSaharanAfrica$income)
+```
+
+
+Before proceeding we must convert population to integer
+```{r}
+mydata$population <- as.integer(mydata$population)
+str(mydata)
+```
+
+
+
+filter & sort data
+```{r}
+library(dplyr)
+```
+
+filter data for 2014 only
+```{r}
+longevity <- mydata %>%
+filter(Year == 2014 & !is.na(life)) %>%
+select(Country, life, income, region)
+```
+
+```{r}
+str(longevity)
+```
+
+```{r}
+# find the twenty high-income countries with the lowest life expectancy
+high_income_short_life <- longevity %>%
+arrange(desc(income)) %>%
+arrange(life) %>%
+head(20)
+```
+
+
+```{r}
+head(high_income_short_life)
+```
+
+```{r}
+# Find the 20 countries with the longest life expectancies and United States with its rank, if it lies outside the top 20
+long_life <- longevity %>%
+  arrange(desc(life)) %>%
+  mutate(rank = c(1:178)) %>%
+  filter(rank <= 20 | Country == "United States")
+```
+
+
+```{r}
+long_life
+```
+
+
+
+```{r}
+longevity_summary <- mydata %>%
+  filter(!is.na(life)) %>%
+  group_by(Year) %>%
+  summarize(Country = n(),
+            max_life_expect = max(life),
+            min_life_expect = min(life)) %>%
+  mutate(range_life_expect = max_life_expect - min_life_expect) %>%
+  arrange(desc(Year))
+```
+
+
+```{r}
+longevity_summary
+```
+
+## 4. Data Visualization:
+
+```{r}
+library(ggplot2)
+
+```
+
+#4.1 Boxplot of life expectancy by region
+```{r, echo=TRUE}
+library(ggplot2)
+ggplot(mydata, aes(x = region, y = life)) +  geom_boxplot(outlier.colour = "red") +  geom_jitter(position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
+```
+
+#4.2 Histogram of life expectancy by region
+```{r, echo=TRUE}
+library(ggplot2)
+par(mfrow=c(2,3))
+hist(America$life)
+hist(EastAsiaPacific$life)
+hist(EuropeCentralAsia$life)
+hist(MiddleEastNorthAfrica$life)
+hist(SouthAsia$life)
+hist(SubSaharanAfrica$life)
+```
+
+
+```{r}
+ggplot(high_income_short_life, aes(x=Country, y=life)) +
+  geom_bar(stat="identity", fill = "red", alpha = 0.7) +
+  xlab("") +
+  ylab("Life expectancy at birth (2014)") + 
+  ggtitle("Rich countries with low life expectancies") +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank()) +
+  coord_flip()
+```
+
+```{r}
+j_country <- "France" # pick, but do not hard wire, an example
+(j_dat <- mydata %>% 
+  filter(Country == j_country))
+```
+
+
+```{r}
+str(mydata)
+```
+
+```{r}
+p <- ggplot(j_dat, aes(x = Year, y = life))
+p + geom_point() + geom_smooth(method = "lm", se = FALSE) + xlab("Year") +
+  ylab("Life Expectancy")
+```
+This diagram shows Life Expectancy by Year
+
+#fit regression
+```{r}
+j_fit <- lm(life ~ Year, j_dat)
+coef(j_fit)
+```
+
+
+
+```{r}
+j_fit <- lm(life ~ I(Year - 2014), j_dat)
+coef(j_fit)
+```
+
+## 5. Hierarchical Clustering
+```{r}
+set.seed(786)
+mydata <- read.csv('https://raw.githubusercontent.com/birdsarah/pydata-nc/master/tutorial/assets/gapminder.csv')
+
+```
+
+
+
+```{r}
+str(mydata)
+```
+
+```{r}
+feature_name <- c('country','year','life_expectancy','population','income','region')
+colnames(mydata) <- feature_name
+str(mydata)
+```
+
+
+It's advisable to gather some basic useful information about the dataset like its dimensions, data types and distribution, number of NAs etc. You will do so by using the str(), summary() and is.na() functions in R.
+
+```{r}
+
+summary(mydata)
+any(is.na(mydata))
+```
+
+#5.1 Dealing with Missing Values
+
+
+```{r}
+# list rows of data that have missing values 
+mydata[!complete.cases(mydata),]
+```
+
+```{r}
+# create new dataset without missing data 
+EDAdata <- na.omit(mydata)
+```
+
+#using Imputation to deal with missing values
+
+```{r}
+#install.packages("Hmisc")
+#install.packages("DMwR")
+#install.packages("mice")
+library(Hmisc)
+library(DMwR)
+library(mice)
+```
+```{r}
+
+library(mice)
+miceMod <- mice(EDAdata[, !names(EDAdata) %in% "medv"], method="rf")  # perform mice imputation, based on random forests.
+miceOutput <- complete(miceMod)  # generate the completed data.
+anyNA(miceOutput)
+#> FALSE
+```
+
+```{r}
+#install.packages("VIM")
+#install.packages(colorspace)
+#install.packages(grid)
+require(data.table)
+library(colorspace)
+library(VIM)
+```
+
+```{r}
+mice_plot <- aggr(EDAdata, col=c('navyblue','yellow'),
+numbers=TRUE, sortVars=TRUE,
+labels=names(EDAdata), cex.axis=.7,
+gap=3, ylab=c("Missing data","Pattern"))
+```
+
+
+```{r}
+aggr(EDAdata)
+```
+
+# 5.2 K-Means Clustering
+
+```{r}
+set.seed(20)
+clusters <- kmeans(EDAdata[,2:3], 5)
+
+# Save the cluster number in the dataset as column 'Borough'
+EDAdata$country <- as.factor(clusters$cluster)
+
+str(clusters)
+```
+
+no missing values
+```{r}
+
+any(is.na(EDAdata))
+```
+
+```{r}
+Country <- as.numeric(EDAdata$country)
+Year <- as.numeric(EDAdata$year)
+Income <- as.numeric(EDAdata$income)
+life_exp <- as.numeric(EDAdata$life_expectancy)
+Region <- as.numeric((EDAdata$region))
+Population <- as.numeric(EDAdata$population)
+```
+
+
+```{r}
+str(EDAdata)
+```
+
+
+```{r}
+EDAnew <- data.frame(Year,life_exp,Region,Income,Country,Population)
+```
+
+```{r}
+str(EDAnew)
+
+```
+
+
+#life expectancy by region
+```{r}
+ggplot(EDAnew,
+    aes_string(y=EDAdata$life_expectancy,x=as.factor(EDAdata$region))) +
+    geom_boxplot() + 
+    xlab('life exp') +
+    ylab('Region')
+```
+
+```{r}
+EDAnew_df <- EDAnew %>%
+filter(Year == 2014 & !is.na(life_exp)) %>%
+select( life_exp, Country,Income)
+```
+
+
+```{r}
+Lifexp_df <- as.data.frame(scale(EDAnew_df))
+summary(Lifexp_df)
+```
+
+```{r}
+dist_mat <- dist(Lifexp_df, method = 'euclidean')
+```
+
+
+```{r}
+hclust_avg <- hclust(dist_mat, method = 'average')
+plot(hclust_avg)
+```
+
+
+```{r}
+cut_avg <- cutree(hclust_avg, k = 3)
+```
+
+
+```{r}
+plot(hclust_avg)
+rect.hclust(hclust_avg , k = 3, border = 2:6)
+abline(h = 3, col = 'red')
+```
+
+
+```{r}
+#install.packages("dendextend")
+suppressPackageStartupMessages(library(dendextend))
+avg_dend_obj <- as.dendrogram(hclust_avg)
+avg_col_dend <- color_branches(avg_dend_obj, h = 3)
+plot(avg_col_dend)
+```
+
+

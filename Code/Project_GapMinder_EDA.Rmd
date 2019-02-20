@@ -2,7 +2,9 @@
 title: "EDA of GapMinder DataSet"
 author: "Avinash Chakre"
 date: "February 16, 2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 In this exploratory data analysis assignment I have used the Gapminder Dataset for analysis. We will be doing this step by step analysis in R using various functions and methods. We will start with Data Description (description of each variables). In Data exploration section I have first presented regionwise (subcontinents) life expectancy and visulization (boxplots, histograms, and density plots for different) of the different variables present in the data. We will be omiting missing values and do some regression and Hierarchical (k-means) clustering.
 
@@ -21,7 +23,7 @@ library(dplyr)
 ```
  
 
-##Reading data from Web location
+Reading data from Web location
 ```{r}
 
 mydata <- read.csv('https://raw.githubusercontent.com/birdsarah/pydata-nc/master/tutorial/assets/gapminder.csv')
@@ -29,7 +31,7 @@ mydata <- read.csv('https://raw.githubusercontent.com/birdsarah/pydata-nc/master
 
 ```
 
-## 1. Data Description:
+# 1. Data Description:
 Finding column names, top/bottom 5 records etc
 
 ```{r}
@@ -47,25 +49,25 @@ The gapminder dataset is a comma-separated value (.CSV) file with 41284 records.
 summary(mydata)
 ```
 
-## 2. GENERATE QUESTIONS
-#Find 20 Countries with lowest life expectance and high income
-#Find the 20 countries with the longest life expectancies
-#Find countries with low life expectancy
-#H0: United States has high life expectancy and high income then other countries 
-#H1: 
+# 2. GENERATE QUESTIONS
+2.1 Find 20 Countries with lowest life expectance and high income
+2.2 Find the 20 countries with the longest life expectancies
+2.3 Find countries with low life expectancy
+2.4 United States has high life expectancy and high income then other countries 
+2.5 H1: 
 
-## 3. Data Exploration:
+# 3. Data Exploration:
 
 Data summary statistics
 
-# 3.1) Mean and Median of life expectancy Region wise
+3.1) Mean and Median of life expectancy Region wise
 
 ```{r}
 aggregate(life ~ region, mydata, median)
 aggregate(life ~ region, mydata, mean)
 ```
 
-# 3.2) Five Num Summary Life Expectancy Region wise
+3.2) Five Num Summary Life Expectancy Region wise
 
 ```{r}
 library(dplyr)
@@ -151,8 +153,6 @@ long_life <- longevity %>%
 long_life
 ```
 
-
-
 ```{r}
 longevity_summary <- mydata %>%
   filter(!is.na(life)) %>%
@@ -169,20 +169,20 @@ longevity_summary <- mydata %>%
 longevity_summary
 ```
 
-## 4. Data Visualization:
+# 4. Data Visualization:
 
 ```{r}
 library(ggplot2)
 
 ```
 
-#4.1 Boxplot of life expectancy by region
+4.1 Boxplot of life expectancy by region
 ```{r, echo=TRUE}
 library(ggplot2)
 ggplot(mydata, aes(x = region, y = life)) +  geom_boxplot(outlier.colour = "red") +  geom_jitter(position = position_jitter(width = 0.1, height = 0), alpha = 1/4)
 ```
 
-#4.2 Histogram of life expectancy by region
+4.2 Histogram of life expectancy by region
 ```{r, echo=TRUE}
 library(ggplot2)
 par(mfrow=c(2,3))
@@ -231,14 +231,12 @@ j_fit <- lm(life ~ Year, j_dat)
 coef(j_fit)
 ```
 
-
-
 ```{r}
 j_fit <- lm(life ~ I(Year - 2014), j_dat)
 coef(j_fit)
 ```
 
-## 5. Hierarchical Clustering
+# 5. Hierarchical Clustering
 ```{r}
 set.seed(786)
 mydata <- read.csv('https://raw.githubusercontent.com/birdsarah/pydata-nc/master/tutorial/assets/gapminder.csv')
@@ -266,7 +264,7 @@ summary(mydata)
 any(is.na(mydata))
 ```
 
-#5.1 Dealing with Missing Values
+5.1 Dealing with Missing Values
 
 
 ```{r}
@@ -279,7 +277,7 @@ mydata[!complete.cases(mydata),]
 EDAdata <- na.omit(mydata)
 ```
 
-#using Imputation to deal with missing values
+using Imputation to deal with missing values
 
 ```{r}
 #install.packages("Hmisc")
@@ -319,7 +317,7 @@ gap=3, ylab=c("Missing data","Pattern"))
 aggr(EDAdata)
 ```
 
-# 5.2 K-Means Clustering
+5.2 K-Means Clustering
 
 ```{r}
 set.seed(20)
@@ -362,7 +360,7 @@ str(EDAnew)
 ```
 
 
-#life expectancy by region
+Life expectancy by region
 ```{r}
 ggplot(EDAnew,
     aes_string(y=EDAdata$life_expectancy,x=as.factor(EDAdata$region))) +
@@ -413,5 +411,3 @@ avg_dend_obj <- as.dendrogram(hclust_avg)
 avg_col_dend <- color_branches(avg_dend_obj, h = 3)
 plot(avg_col_dend)
 ```
-
-
